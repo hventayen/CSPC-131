@@ -71,22 +71,22 @@ void Book::set_price( double newPrice )
 std::istream & operator>>( std::istream & stream, Book & book )
 {
   Book workingItem;
-  
+
   char delimiter = ',';
-  
-  // Assume fields are separated by commas and string attributes are 
+
+  // Assume fields are separated by commas and string attributes are
   // enclosed with double quotes.  For example:
   // "9789998287532", "Over in the Meadow", "Ezra Jack Keats", 91.11
   stream >> std::quoted( workingItem._isbn   ) >> delimiter
 	 >> std::quoted( workingItem._title  ) >> delimiter
 	 >> std::quoted( workingItem._author ) >> delimiter
 	 >> workingItem._price;
-  
-  // If all okay, move workingItem into the returned book. Copying the 
-  // information also "works" but moving is more efficient. Note this 
+
+  // If all okay, move workingItem into the returned book. Copying the
+  // information also "works" but moving is more efficient. Note this
   // uses Book's move assignment operator.
   if(stream) book = std::move( workingItem );
-  
+
   return stream;
 }
 
@@ -97,7 +97,7 @@ std::ostream & operator<<( std::ostream & stream, const Book & book )
 	 << std::quoted( book.get_title()  ) << delimiter
 	 << std::quoted( book.get_author() ) << delimiter
 	 << book.get_price();
-  
+
   return stream;
 }
 
@@ -107,15 +107,15 @@ std::ostream & operator<<( std::ostream & stream, const Book & book )
  **************************************************/
 bool operator==( const Book & lhs, const Book & rhs )
 {
-  // Implement equality in terms of less than to enforce identical 
-  // column priority ordering and floating point epsilon comparison tolerance. 
+  // Implement equality in terms of less than to enforce identical
+  // column priority ordering and floating point epsilon comparison tolerance.
   return lhs._isbn   == rhs._isbn
     && lhs._title  == rhs._title
     && lhs._author == rhs._author
     && std::abs( lhs._price - rhs._price ) < EPSILON;
 }
 
-bool operator!=( const Book & lhs, const Book & rhs )   
+bool operator!=( const Book & lhs, const Book & rhs )
 { return !( lhs == rhs ); }
 
 /**********************************************
@@ -129,7 +129,7 @@ bool operator!=( const Book & lhs, const Book & rhs )
 
 std::ostream & operator<<( std::ostream & stream, const BookList & bookList )
 {
-  
+
   for (unsigned i=0; i< bookList._books_array_size; i++) {
     stream << '\n' << std::setw(5) << i << ":  " << bookList[i];
   }
@@ -142,17 +142,17 @@ std::istream & operator>>( std::istream & stream, BookList & bookList )
 {
   Book book;
   unsigned counter = 0;
-  
+
   while(stream && counter < bookList._capacity) {
     stream >> book;
     bookList._bookArray[counter++] = std::move(book);
   }
-  
+
   if (counter < bookList._capacity)
     // read less books than <_capacity>
     // so set it to actual number of books read
     bookList._books_array_size = counter;
-  
+
   return stream;
 }
 
@@ -161,7 +161,10 @@ std::istream & operator>>( std::istream & stream, BookList & bookList )
  ************************/
 // TO DO
 BookList::BookList(const std::size_t & newSize)
-{ 
+{
+  _capacity = 30;
+  _capacity = newSize;
+  _bookArray = new Book[newSize];
 }
 
 /************************
@@ -170,18 +173,29 @@ BookList::BookList(const std::size_t & newSize)
 // TO DO
 BookList & BookList::operator+=( const BookList & rhs)
 {
-  // Concatenate the righthand side book list of books to this list 
-  // by repeatedly adding each book at the end of the current book list 
+  // Concatenate the righthand side book list of books to this list
+  // by repeatedly adding each book at the end of the current book list
   // as long as it does not exceed <_capacity>
   // If exceeds, then stop adding
+  while(_capacity > _books_array_size)
+  {
+    for(int i = 0; i < rhs.size(); i++)
+    {
+      _bookArray[_books_array_size] = rhs[i];
+    }
+    _books_array_size++;
+  }
+  return *this;
 }
 
 /*********************
  ** Destructor
  *********************/
-// TO DO 
+// TO DO
 BookList::~BookList()
 {
+  _capacity = 0;
+  delete [] _bookArray;
 }
 
 /***********************
@@ -191,14 +205,23 @@ BookList::~BookList()
 std::size_t BookList::size() const
 {
   // return the size of the dynamic array
+  return _books_array_size;
 }
 
 //TO DO
 std::size_t BookList::find( const Book & book ) const
-// Locate the book in this book list and return the zero-based position 
-// of that book. If the book does not exist, return the size of this 
+// Locate the book in this book list and return the zero-based position
+// of that book. If the book does not exist, return the size of this
 // book list as an indicator the book does not exist.
 {
+  for (int i = 0; i < _books_array_size; i++)
+  {
+    if(_bookArray[i] == book)
+    {
+      return i;
+    }
+  }
+  return _books_array_size;
 }
 
 Book BookList::operator[](std::size_t index) const {
@@ -212,11 +235,11 @@ void BookList::readInFile(const std::string& filename) {
   std::ifstream inFile(filename);
   Book newBook;
   unsigned i=0;
-  
+
   // Read each line
   while ((inFile >> newBook) && (i < _capacity)) {
     _bookArray[i++] = newBook;
   }
-  
+
   _books_array_size = i;
 }
