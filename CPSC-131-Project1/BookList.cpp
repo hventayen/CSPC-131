@@ -162,7 +162,8 @@ std::istream & operator>>( std::istream & stream, BookList & bookList )
 // TO DO
 BookList::BookList(const std::size_t & newSize)
 {
-  _capacity = 30;
+  int ex = 30;
+  _capacity = ex;
   _capacity = newSize;
   _bookArray = new Book[newSize];
 }
@@ -177,13 +178,15 @@ BookList & BookList::operator+=( const BookList & rhs)
   // by repeatedly adding each book at the end of the current book list
   // as long as it does not exceed <_capacity>
   // If exceeds, then stop adding
-  while(_capacity > _books_array_size)
+  int lhs = _books_array_size;
+  int max = _capacity;
+  while(max > lhs)
   {
     for(int i = 0; i < rhs.size(); i++)
     {
-      _bookArray[_books_array_size] = rhs[i];
+      _bookArray[lhs] = rhs[i];
     }
-    _books_array_size++;
+    lhs++;
   }
   return *this;
 }
@@ -194,7 +197,8 @@ BookList & BookList::operator+=( const BookList & rhs)
 // TO DO
 BookList::~BookList()
 {
-  _capacity = 0;
+  int capacity = 0;
+  _capacity = capacity;
   delete [] _bookArray;
 }
 
@@ -214,14 +218,15 @@ std::size_t BookList::find( const Book & book ) const
 // of that book. If the book does not exist, return the size of this
 // book list as an indicator the book does not exist.
 {
-  for (int i = 0; i < _books_array_size; i++)
+  int size = _books_array_size;
+  for (int i = 0; i < size; i++)
   {
     if(_bookArray[i] == book)
     {
       return i;
     }
   }
-  return _books_array_size;
+  return size;
 }
 
 Book BookList::operator[](std::size_t index) const {
